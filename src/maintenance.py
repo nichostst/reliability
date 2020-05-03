@@ -47,8 +47,9 @@ def maintenance(dist):
                     'no_maintenance': 0}
 
     # Optimize by cost
-    opt = minimize(lambda x: calculate(dist, x, cost=True, **inputs),
-                   cutoff)['x'][0]
+    with st.spinner('Running optimization...'):
+        opt = minimize(lambda x: calculate(dist, x, cost=True, **inputs),
+                       cutoff)['x'][0]
 
     # Produce dataframe
     df = pd.DataFrame(out).T
