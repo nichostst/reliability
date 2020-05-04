@@ -96,3 +96,22 @@ def calculate(dist, cutoff, cost=False, **kwargs):
                'mtbf': mtbf, 'mcount': mcount}
 
     return out
+
+
+def cost_section(inputs):
+    st.header('Costs')
+    st.info('Costs are for single failure occurrence/maintenance activity')
+    sfcost = st.number_input('Failure Cost', 0, 100000, 20000)
+    mcost = st.number_input('Maintenance Cost', 0, 100000, 3000)
+
+    inputs['sfcost'] = sfcost
+    inputs['mcost'] = mcost
+
+
+def uncertainty_chart(df):
+    fig = alt.Chart(
+        df, height=150, width=180
+    ).mark_bar(opacity=0.7).encode(
+        alt.X('count', bin=alt.Bin(maxbins=20)), y='count()'
+    )
+    return fig

@@ -1,18 +1,33 @@
-import numpy as np
-
-
 class Simulation:
-    def __init__(self, dist, cutoff, size=10000):
-        assert size >= 100, 'Size should be at least 100'
+    def __init__(self, noc, dist, cutoff, tlen):
+        self._noc = noc
         self._dist = dist
         self._cutoff = cutoff
-        self._size = size
+        self._tlen = tlen
 
     def simulate(self):
-        self.trials = self._dist.rvs(size=self._size)
+        self.trials = []
+        self.maintenances = []
+        self.failures = []
+        for _ in range(self._noc):
+            # Initialize
+            tot = []
+            while sum(tot) < self._tlen:
+                trial = self._dist.rvs()
+                tot.append(min(trial, self._cutoff))
+            # Last failure/maintenance is truncated
+            tot.pop(-1)
+            # Get number of failures/maintenances
+            maintenance = tot.count(self._cutoff)
+            failure = len(tot) - maintenance
+            self.trials.append(tot)
+            self.maintenances.append(maintenance)
+            self.failures.append(failure)
+
+        '''
         self.durations = [min(x, y)
                           for x, y
-                          in zip(list(self.trials), [self._cutoff]*self._size)]
+                          in zip(list(self.trials), [self._cutoff]*self._tlen)]
         self.mtbf = sum(self.durations)/sum(self.trials < self._cutoff)
 
         # Failure indices and times
@@ -20,3 +35,4 @@ class Simulation:
         ftimes = np.cumsum(self.durations)[f]
         # Time between failures
         self.tbf = [ftimes[0]]+list(np.diff(ftimes))
+        '''
