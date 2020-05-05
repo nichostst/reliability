@@ -23,16 +23,3 @@ class Simulation:
             self.trials.append(tot)
             self.maintenances.append(maintenance)
             self.failures.append(failure)
-
-        '''
-        self.durations = [min(x, y)
-                          for x, y
-                          in zip(list(self.trials), [self._cutoff]*self._tlen)]
-        self.mtbf = sum(self.durations)/sum(self.trials < self._cutoff)
-
-        # Failure indices and times
-        f = np.argwhere(self.trials < self._cutoff).ravel()
-        ftimes = np.cumsum(self.durations)[f]
-        # Time between failures
-        self.tbf = [ftimes[0]]+list(np.diff(ftimes))
-        '''

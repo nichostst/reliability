@@ -23,11 +23,18 @@ def simulation(dist, inputs):
 
     st.markdown('---')
     st.header('Trials')
+    mtype = st.radio('Maintenance Type', ['Component-wise', 'Fleetwide'])
+
+    st.markdown('---')
+    st.header('Trials')
     tl = st.slider('Length of Trials (in years)', 0.5, 10.0, 3.0, 0.1)
     rept = st.number_input('Repeat', 500, 10000, 2500)
     # Convert trial length to hours per component
     tlen = tl*oh/noc
-    sim = Simulation(noc, dist, cutoff, tlen)
+    if mtype == 'Component-wise':
+        sim = Simulation(noc, dist, cutoff, tlen)
+    else:
+        st.write('Not implemented yet')
 
     btn = st.button('Simulate')
     if btn:
