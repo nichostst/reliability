@@ -45,8 +45,8 @@ def home():
     st.markdown('''   1. Maintenance restores asset to *good-as-new* condition.
     If the assets are replaced every time it fails, it will satisfy this
     assumption, no worries!
-    2. Operating hours and conditions of the assets are the same across the
-    whole system.''')
+    2. Operating hours and operating conditions of the assets are the same
+    across the whole system.''')
 
     st.markdown('---')
     st.header('Workflow')
@@ -66,8 +66,8 @@ def home():
     4. In case the estimate of the uncertainty is needed, users may proceed to
     the `Simulation` page to simulate maintenance within a user-specified time
     period. **Note that the assumption in step 2 is made optional by allowing
-    user to choose the maintenance type. The choice `Component-wise` reflects
-    said assumption** The simulation data may be downloaded to allow users to
+    user to choose the maintenance type.** The choice `Component-wise` reflects
+    said assumption. The simulation data may be downloaded to allow users to
     conduct their own analysis that is not covered by the application. The
     bottom of the page will show the uncertainty as distributions.''')
 
