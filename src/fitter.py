@@ -32,8 +32,9 @@ def fitter(dist):
     st.header('Upload')
     file_csv = st.file_uploader('''Upload a CSV file''',
                                 type=['csv'])
+    # Initialize verification variable
+    v = False
     if file_csv:
-        v = False
         encoded = file_csv.read().encode('utf8')
         df = pd.read_csv(io.BytesIO(encoded))
         df.columns = [x.lower() for x in df.columns]
