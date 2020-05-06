@@ -21,6 +21,16 @@ def truncated_ev(dist, cutoff):
     return quad(lambda x: x*dist.pdf(x), 0, cutoff)[0]
 
 
+def log_likelihood(df, dist, params):
+    durations = df['duration'].values
+    status = df['status'].values
+    d = dist(a=1, loc=0, c=params[0], scale=params[1])
+    # Hazard function
+    hf = d.pdf(durations)/d.sf(durations)
+    sf = d.sf(durations)
+    return sum(np.log(np.power(hf, status)*sf))
+
+
 def numerical_mtbf(dist, cutoff):
     integral = truncated_ev(dist, cutoff)
     return integral/dist.cdf(cutoff) - cutoff*(1-1/dist.cdf(cutoff))

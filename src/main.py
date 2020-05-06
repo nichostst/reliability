@@ -21,7 +21,7 @@ elif page in ['Fitter']:
     dlist = {'weibull': exponweib}
     d = st.sidebar.selectbox('Distribution', ['weibull'],
                              0, lambda x: x.capitalize())
-    pagedic[page]()
+    pagedic[page](dlist[d])
 elif page in ['Maintenance', 'Simulation']:
     # List distributions
     st.sidebar.subheader('Failure Process')
