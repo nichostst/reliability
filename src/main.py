@@ -5,17 +5,19 @@ from home import home
 from fitter import fitter
 from maintenance import maintenance
 from simulation import simulation
+from validation import validation
 from utils import floor_magnitude
 
 
 st.sidebar.title('Reliability')
 
 page = st.sidebar.radio('Page',
-                        ['Home', 'Fitter', 'Maintenance', 'Simulation'])
+                        ['Home', 'Fitter', 'Maintenance', 'Simulation',
+                         'Vaildation'])
 pagedic = {'Home': home, 'Fitter': fitter, 'Maintenance': maintenance,
-           'Simulation': simulation}
+           'Simulation': simulation, 'Validation': validation}
 
-if page in ['Home']:
+if page in ['Home', 'Validation']:
     pagedic[page]()
 elif page in ['Fitter']:
     dlist = {'weibull': exponweib}
