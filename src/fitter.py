@@ -37,7 +37,7 @@ def fitter(dist):
     file_csv = False
 
     gu = st.radio('Generate toy data or upload?',
-                  ['Generate', 'Upload'])
+                  ['Upload', 'Generate'])
     if gu == 'Upload':
         file_csv = st.file_uploader('''Upload a CSV file''',
                                     type=['csv'])
