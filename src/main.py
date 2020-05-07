@@ -13,7 +13,7 @@ st.sidebar.title('Reliability')
 
 page = st.sidebar.radio('Page',
                         ['Home', 'Fitter', 'Maintenance', 'Simulation',
-                         'Vaildation'])
+                         'Validation'])
 pagedic = {'Home': home, 'Fitter': fitter, 'Maintenance': maintenance,
            'Simulation': simulation, 'Validation': validation}
 

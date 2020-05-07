@@ -118,6 +118,33 @@ def cost_section(inputs):
     inputs['mcost'] = mcost
 
 
+def simulate_fleetwide(dist, cutoff):
+    timenow = 0
+    durations = []
+    sim = dist.rvs()
+    while sim < cutoff-timenow:
+        durations.append([sim, 1])
+        timenow += sim
+        sim = dist.rvs()
+    durations.append([cutoff-timenow, 0])
+
+    return durations
+
+
+def get_durations_fleetwide(tlen, cutoff, dist):
+    durations = []
+    for _ in range(int(tlen/cutoff)):
+        durations.extend(simulate_fleetwide(dist, cutoff))
+
+    remainder = tlen % cutoff
+    if remainder > 0:
+        rem = simulate_fleetwide(dist, remainder)
+        rem = [x for x in rem if x[1] == 1]
+        durations.extend(rem)
+
+    return durations
+
+
 def uncertainty_chart(df):
     fig = alt.Chart(
         df, height=150, width=180

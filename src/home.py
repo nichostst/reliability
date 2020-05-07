@@ -52,7 +52,7 @@ def home():
     st.header('Workflow')
     st.markdown('''   1. Input failure data at the `Fitter` page to learn the
     distribution of the failure process. If you do not have the data, you may
-    skip to the step 2.
+    generate a toy data by supplying the parameters, or skip to the step 2.
     2. On the `Maintenance` page, you will be able to input the learned (if you
     do step 1, else you can still plug and play with the parameters) failure
     process with the parameters on the sidebar. Important to note is the
@@ -70,6 +70,14 @@ def home():
     said assumption. The simulation data may be downloaded to allow users to
     conduct their own analysis that is not covered by the application. The
     bottom of the page will show the uncertainty as distributions.''')
+
+    st.markdown('''There are **two** maintenance types implemented:''')
+    st.markdown('''   1. *Component-wise*: Maintains asset when it reaches a
+    *mileage*, or time since last maintenance equal to the user-given interval.
+    Once maintenance is done, the timer is reset to 0 for that asset only.
+    2. *Fleetwide*: Whenever the system reaches *mileage* equal to the
+    user-given interval, the whole system is maintained, regardless of time
+    to last failures of individual assets.''')
 
     st.markdown('---')
     st.header('Disclaimer')

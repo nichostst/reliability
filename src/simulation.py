@@ -3,7 +3,8 @@ import pandas as pd
 import streamlit as st
 
 from sim import Simulation
-from utils import cost_section, img_to_bytes, uncertainty_chart
+from utils import cost_section, img_to_bytes, get_durations_fleetwide,\
+    uncertainty_chart
 
 
 def simulation(dist, inputs):
@@ -28,13 +29,11 @@ def simulation(dist, inputs):
     st.markdown('---')
     st.header('Trials')
     tl = st.slider('Length of Trials (in years)', 0.5, 10.0, 3.0, 0.1)
-    rept = st.number_input('Repeat', 500, 10000, 2500)
+    rept = st.number_input('Repeat', 100, 10000, 2500)
     # Convert trial length to hours per component
     tlen = tl*oh/noc
     if mtype == 'Component-wise':
         sim = Simulation(noc, dist, cutoff, tlen)
-    else:
-        st.write('Not implemented yet')
 
     btn = st.button('Simulate')
     if btn:
@@ -43,13 +42,27 @@ def simulation(dist, inputs):
         ms = []
         fs = []
         for i in range(rept):
-            sim.simulate()
-            trials.append(sim.trials)
-            ms.append(sim.maintenances)
-            fs.append(sim.failures)
+            if mtype == 'Component-wise':
+                sim.simulate()
+                trials.append(sim.trials)
+                ms.append(sim.maintenances)
+                fs.append(sim.failures)
+            elif mtype == 'Fleetwide':
+                f = []
+                m = []
+                tr = []
+                for _ in range(noc):
+                    durations = get_durations_fleetwide(tlen, cutoff, dist)
+                    tr.append(durations)
+                    f.append(len([x[0] for x in durations if x[1] == 1]))
+                    m.append(len([x[0] for x in durations if x[1] == 0]))
+                trials.append(tr)
+                fs.append(f)
+                ms.append(m)
             p.progress(int((i+1)*100/rept))
         df = pd.DataFrame(trials).rename_axis('trial_id')
-        csv = df.to_csv(index=False)
+        df.columns = ['component_'+str(x+1) for x in df.columns]
+        csv = df.to_csv()
 
         maintenances = pd.DataFrame([sum(x) for x in ms],
                                     columns=['count'])

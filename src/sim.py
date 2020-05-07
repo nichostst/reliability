@@ -12,13 +12,19 @@ class Simulation:
         for _ in range(self._noc):
             # Initialize
             tot = []
-            while sum(tot) < self._tlen:
+            t = 0
+            while t < self._tlen:
                 trial = self._dist.rvs()
-                tot.append(min(trial, self._cutoff))
-            # Last failure/maintenance is truncated
+                if trial > self._cutoff:
+                    t += self._cutoff
+                    tot.append([self._cutoff, 0])
+                else:
+                    t += trial
+                    tot.append([trial, 1])
+            # Last failure/maintenance does not exist yet
             tot.pop(-1)
             # Get number of failures/maintenances
-            maintenance = tot.count(self._cutoff)
+            maintenance = len([x for x in tot if x[1] == 0])
             failure = len(tot) - maintenance
             self.trials.append(tot)
             self.maintenances.append(maintenance)

@@ -1,9 +1,10 @@
+import base64
 import io
 import pandas as pd
 from scipy.optimize import minimize
 import streamlit as st
 
-from utils import img_to_bytes, log_likelihood
+from utils import floor_magnitude, img_to_bytes, log_likelihood
 
 
 def fitter(dist):
@@ -30,10 +31,56 @@ def fitter(dist):
     st.markdown('*Example data format*')
     st.markdown('---')
     st.header('Upload')
-    file_csv = st.file_uploader('''Upload a CSV file''',
-                                type=['csv'])
-    # Initialize verification variable
+
+    # Initialize data verification and file variable
     v = False
+    file_csv = False
+
+    gu = st.radio('Generate toy data or upload?',
+                  ['Generate', 'Upload'])
+    if gu == 'Upload':
+        file_csv = st.file_uploader('''Upload a CSV file''',
+                                    type=['csv'])
+    elif gu == 'Generate':
+        # Generation parameters
+        scale = st.number_input('Scale', 100, 1000000, 20000, 100)
+        shape = st.slider('Shape', 0.2, 5.0, 1.5, 0.01)
+        # Create distribution object
+        dgen = dist(a=1, loc=0, c=shape, scale=scale)
+
+        mag = floor_magnitude(dgen.ppf(0.99))
+        cutoff = st.slider('Maintenance Interval', int(mag*0.2),
+                           min([int(mag*10), 1000000]),
+                           int(mag*0.9), 100)
+
+        # Trials
+        rows = st.number_input('Rows to generate', 500, 10000, 2500, 100)
+        gbutton = st.button('Generate')
+        if gbutton:
+            tot = []
+            for _ in range(rows):
+                t = 0
+                trial = dgen.rvs()
+                if trial > cutoff:
+                    t += cutoff
+                    tot.append([cutoff, 0])
+                else:
+                    t += trial
+                    tot.append([trial, 1])
+            # Automatic verification
+            v = True
+            df = pd.DataFrame(tot, columns=['duration', 'status'])
+            csv = df.to_csv(index=False)
+
+            # Strings <-> bytes conversion
+            b64 = base64.b64encode(csv.encode()).decode()
+            href = '''<a href="data:file/csv;base64,{}"
+                download="{}">Download generated data</a>'''
+            filename = st.text_input('Filename (e.g. gen.csv)', 'gen.csv')
+
+            st.markdown(href.format(b64, filename), unsafe_allow_html=True)
+
+    # If file is uploaded
     if file_csv:
         encoded = file_csv.read().encode('utf8')
         df = pd.read_csv(io.BytesIO(encoded))
@@ -43,9 +90,11 @@ def fitter(dist):
             st.write(df.head(5))
             v = st.checkbox('Verify?')
         else:
-            st.error('Failed to load data: No ')
+            st.error('''Failed to load data. Ensure column name
+            requirement is satisfied''')
 
     if v:
+        st.subheader('Distribution Fitting')
         optimized = False
         for method in ['BFGS', 'Nelder-Mead']:
             with st.spinner(f'Optimizing with {method}'):
