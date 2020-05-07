@@ -3,7 +3,12 @@ import pandas as pd
 from scipy.optimize import minimize
 import streamlit as st
 
-from utils import calculate, cost_section, draw_distribution, img_to_bytes
+from utils import (
+    calculate,
+    cost_section,
+    draw_distribution,
+    img_to_bytes
+)
 
 
 def maintenance(dist, inputs):

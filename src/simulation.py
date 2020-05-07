@@ -3,8 +3,12 @@ import pandas as pd
 import streamlit as st
 
 from sim import Simulation
-from utils import cost_section, img_to_bytes, get_durations_fleetwide,\
+from utils import (
+    cost_section,
+    img_to_bytes,
+    get_durations_fleetwide,
     uncertainty_chart
+)
 
 
 def simulation(dist, inputs):
