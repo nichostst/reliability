@@ -156,3 +156,32 @@ def uncertainty_chart(df):
         alt.X('count', bin=alt.Bin(maxbins=20)), y='count()'
     )
     return fig
+
+
+def test_inputs(state, params):
+    id_ = params['ID']
+    params_ = tuple([params['Alpha'], params['Beta'],
+                     params['Disc. Ratio'],
+                     params['Specified MTBF']])
+    if id_ in [x[0] for x in state]:
+        return 'iderror'
+    if params_ in [tuple(x[1:]) for x in state]:
+        return 'paramerror'
+    return 'pass'
+
+
+def get_test_properties(alpha, beta, d, m0, noc):
+    correction_factor = (d+1)/(2*d)
+    ub = (1-beta)/alpha*correction_factor  # A
+    lb = beta/(1-alpha)  # B
+    hspace = np.linspace(-2, 2, 50)
+    m = {h: m0*(np.power(d, h)-1)/(h*(d-1)) for h in hspace}
+    pa = {h: (np.power(ub, h)-1)/(np.power(ub, h) - np.power(lb, h))
+          for h in hspace}
+    er = {h: m0*(pa[h]*(np.log(ub)-np.log(lb)) - np.log(ub)) /
+          (m[h]*(d-1) - m0*np.log(d)) for h in hspace}
+    et = {h: m[h]/noc*er[h] for h in hspace}
+    df = pd.DataFrame([m, pa, et], index=['m', 'Pa', 'Et'], columns=hspace).T
+    df.reset_index(inplace=True)
+
+    return df

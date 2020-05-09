@@ -4,7 +4,11 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-from utils import img_to_bytes
+from utils import (
+    get_test_properties,
+    img_to_bytes,
+    test_inputs
+    )
 
 
 def validation():
@@ -19,8 +23,8 @@ def validation():
     st.markdown('''To validate with a statistical framework, the hypothesis of
                 whether the MTBF of the asset is as specified. It is a
                 modification of the use case as known in reliability
-                engineering literature called Sequential Test Plan, covered in
-                IEC 61124 standard.''')
+                engineering literature called Reliability Demonstration Test,
+                covered in IEC 61124 standard.''')
 
     st.header('Upload')
     st.markdown('''Upload test data with format as specified in the Fitter
@@ -35,6 +39,7 @@ def validation():
                                 1.5, 0.01)
     alpha = st.sidebar.slider("Producer's Risk (alpha)", 0.01, 0.3, 0.05, 0.01)
     beta = st.sidebar.slider("Consumer's Risk (beta)", 0.01, 0.3, 0.05, 0.01)
+    st.sidebar.header('System')
     noc = st.sidebar.number_input('Number of Components Tested', 1, 100, 10)
     oh = st.sidebar.number_input('Operational Hours (Yearly)', 1, 24*366, 5000)
 
@@ -101,7 +106,7 @@ def validation():
                 accept = cml[cml['type'] == 'accept']
                 reject = cml[cml['type'] == 'reject']
                 status = cml[cml['type'] == 'status'].head(-1)
-                reject['y2'] = row['status']+1
+                reject['y2'] = row['status']+10
                 fstatus = alt.Chart(
                     status
                     ).mark_line(clip=True, color='black',
@@ -131,3 +136,59 @@ def validation():
                     y2='y2'
                         )
                 st.altair_chart(fstatus + faccept + freject)
+
+    st.header('Test Plan')
+    st.markdown('''Change the test plan parameters on the sidebar.
+                Click on the `Create` button if you want to create a test
+                plan with the current parameters:''')
+    text = st.text_input('Test Plan ID')
+    params = {'ID': text, 'Alpha': alpha, 'Beta': beta,
+              'Disc. Ratio': d, 'Specified MTBF': m0}
+    pdf = pd.DataFrame(params, index=['Value'])
+    st.write('''*The test preview below will be updated whenever the parameter
+             is changed*''', pdf)
+
+    # Manage input states
+    @st.cache(allow_output_mutation=True)
+    def get_state():
+        return []
+
+    state = get_state()
+    et = None
+
+    create = st.button('Create')
+    if create:
+        if test_inputs(state, params) == 'iderror':
+            st.error('ID exists. Please choose another ID')
+        elif test_inputs(state, params) == 'paramerror':
+            st.error('Test plan with these parameters exists')
+        else:
+            state.append(list(params.values()))
+            st.info('Create successful')
+
+    st.subheader('Current Test Plans')
+    st.write(pd.DataFrame(state, columns=params.keys()))
+
+    st.header('Test Properties')
+    st.markdown('Select one of the test IDs to check the test properties')
+    tid = st.selectbox('Test ID', [x[0] for x in state])
+    if tid:
+        # Get parameters for the test ID
+        params_ = [x[1:] for x in state if x[0] == tid][0]
+        et = get_test_properties(noc=noc, *params_)
+        # Plot the properties
+        oc = alt.Chart(et, height=250, width=300).mark_area(line=True).encode(
+            x=alt.X('m', title='Actual MTBF'),
+            y=alt.Y('Pa', title='Probability of Acceptance')
+            ).properties(title='Operating Characteristic Curve')
+        exp_time = alt.Chart(et, height=250,
+                             width=300).mark_area(line=True).encode(
+            x=alt.X('m', title='Actual MTBF'),
+            y=alt.Y('Et', title='Expected Time to Decision')
+            ).properties(title='Actual MTBF vs Et')
+        st.altair_chart(oc | exp_time)
+        a_ = np.log(params_[1]/(1-params_[0]))/np.log(params_[2])
+        b_ = (params_[2]-1)/(params_[3]*np.log(params_[2]))
+        mtt = -a_/b_/noc
+        st.write('Minimum test time (years) is', round(mtt/oh, 2), 'with',
+                 noc, 'components.')
