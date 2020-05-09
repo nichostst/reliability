@@ -158,6 +158,59 @@ def uncertainty_chart(df):
     return fig
 
 
+def show_seq_chart(cumul, idx, bounds, d, m0):
+    (lb, ub) = bounds
+    cml = cumul.loc[:idx+1, ['duration', 'status']]
+    # Maximum duration
+    maxd = cml.tail(1)['duration'].values[0]
+    # Maximum number of failure
+    maxf = cml.tail(1)['status'].values[0]
+    cml = cml.append(pd.DataFrame({'duration': 0, 'status': 0},
+                     index=[0]))
+    cml = cml.sort_values('duration').reset_index(drop=True)
+    a = np.log(lb)/np.log(d)
+    c = np.log(ub)/np.log(d)
+    b = (d-1)/(m0*np.log(d))
+    cml['accept'] = a + b*cml['duration']
+    cml['reject'] = c + b*cml['duration']
+    cml = pd.melt(cml, id_vars=['duration'],
+                  value_vars=['status', 'accept', 'reject'],
+                  var_name='type')
+    accept = cml[cml['type'] == 'accept']
+    reject = cml[cml['type'] == 'reject']
+    status = cml[cml['type'] == 'status'].head(-1)
+    reject['y2'] = maxf+10
+    fstatus = alt.Chart(
+        status
+        ).mark_line(clip=True, color='black',
+                    interpolate='step-after').encode(
+        x=alt.X('duration:Q',
+                scale=alt.Scale(domain=(0, maxd))),
+        y=alt.Y('value:Q',
+                scale=alt.Scale(domain=(0, maxf)))
+            )
+    faccept = alt.Chart(
+        accept).mark_area(clip=True, color='green',
+                          opacity=0.5,).encode(
+        x=alt.X('duration:Q',
+                scale=alt.Scale(domain=(0, maxd)),
+                axis=alt.Axis(title='Cumulative Time')),
+        y=alt.Y('value:Q',
+                scale=alt.Scale(domain=(0, maxf)),
+                axis=alt.Axis(title='Cumulative Failures'))
+            )
+    freject = alt.Chart(
+        reject).mark_area(clip=True, color='red',
+                          opacity=0.5, orient='vertical').encode(
+        x=alt.X('duration:Q',
+                scale=alt.Scale(domain=(0, maxd))),
+        y=alt.Y('value:Q',
+                scale=alt.Scale(domain=(0, maxf))),
+        y2='y2'
+            )
+    st.altair_chart(fstatus + faccept + freject)
+
+
 def test_inputs(state, params):
     id_ = params['ID']
     params_ = tuple([params['Alpha'], params['Beta'],
@@ -185,3 +238,25 @@ def get_test_properties(alpha, beta, d, m0, noc):
     df.reset_index(inplace=True)
 
     return df
+
+
+def get_properties(state, tid, noc, oh):
+    # Get parameters for the test ID
+    params_ = [x[1:] for x in state if x[0] == tid][0]
+    et = get_test_properties(noc=noc, *params_)
+    # Plot the properties
+    oc = alt.Chart(et, height=250, width=300).mark_area(line=True).encode(
+        x=alt.X('m', title='Actual MTBF'),
+        y=alt.Y('Pa', title='Probability of Acceptance')
+        ).properties(title='Operating Characteristic Curve')
+    exp_time = alt.Chart(et, height=250,
+                         width=300).mark_area(line=True).encode(
+        x=alt.X('m', title='Actual MTBF'),
+        y=alt.Y('Et', title='Expected Time to Decision')
+        ).properties(title='Actual MTBF vs Et')
+    st.altair_chart(oc | exp_time)
+    a_ = np.log(params_[1]/(1-params_[0]))/np.log(params_[2])
+    b_ = (params_[2]-1)/(params_[3]*np.log(params_[2]))
+    mtt = -a_/b_/noc
+    st.write('Minimum test time (years) is', round(mtt/oh, 2), 'with',
+             noc, 'components.')
