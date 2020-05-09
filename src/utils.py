@@ -260,3 +260,48 @@ def get_properties(state, tid, noc, oh):
     mtt = -a_/b_/noc
     st.write('Minimum test time (years) is', round(mtt/oh, 2), 'with',
              noc, 'components.')
+
+
+def sequential_test(df, params):
+    (lb, ub, d, m0, oh, noc) = params
+    df.columns = [x.lower() for x in df.columns]
+    # Get cumulative failures/maintenances time
+    cumul = df.cumsum()
+    pr_exponent = cumul['duration']*(1-d)/m0
+    cumul['p_ratio'] = np.power(d, cumul['status'])*np.exp(pr_exponent)
+    cumul['accept'] = cumul['p_ratio'] < lb
+    cumul['reject'] = cumul['p_ratio'] > ub
+    ac = cumul['accept']
+    rj = cumul['reject']
+    ac = ac[ac == 1]
+    rj = rj[rj == 1]
+    # Look for index where it is accepted/rejected
+    success = False
+    if len(ac) == 0 and len(rj) == 0:
+        st.warning('Test time not enough')
+    elif len(rj) == 0:
+        success = True
+        idx = ac.idxmax()
+        st.info('Specification accepted')
+    elif len(ac) == 0:
+        success = True
+        idx = rj.idxmax()
+        st.error('Specification rejected')
+    else:
+        success = True
+        idx = min(ac.idxmax(), rj.idxmax())
+
+    if success:
+        row = cumul.iloc[idx, :][['duration', 'status']]
+        st.write('Test cumulative duration:', int(row['duration']),
+                 'hours (', round(row['duration']/oh/noc, 2),
+                 'years over', noc, 'components)')
+        st.write('Test cumulative failures:', row['status'])
+
+        showr = st.checkbox('Show sequential test results?')
+        if showr:
+            st.write(cumul.iloc[:idx+1, :])
+
+        showc = st.checkbox('Show sequential test chart?')
+        if showc:
+            show_seq_chart(cumul, idx, (lb, ub), d, m0)
