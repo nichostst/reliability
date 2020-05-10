@@ -82,11 +82,15 @@ def validation():
     file_csv = st.file_uploader('''Upload Test Data in CSV format''',
                                 type=['csv'])
 
-    correction_factor = (d+1)/(2*d)
-    ub = (1-beta)/alpha*correction_factor
-    lb = beta/(1-alpha)
-    # Once uploaded
+    # Once uploaded and test plan chosen
+    sel = st.selectbox('Use Test Plan?', ['No']+[x[0] for x in state])
+    st.subheader('Results')
     if file_csv:
         encoded = file_csv.read().encode('utf8')
         df = pd.read_csv(io.BytesIO(encoded))
+        if sel != 'No':
+            alpha, beta, d, m0 = [x[1:] for x in state if x[0] == sel][0]
+        correction_factor = (d+1)/(2*d)
+        ub = (1-beta)/alpha*correction_factor
+        lb = beta/(1-alpha)
         sequential_test(df, (lb, ub, d, m0, oh, noc))
