@@ -2,13 +2,12 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
 import streamlit as st
-
-from utils import (
+from utils.io import img_to_bytes
+from utils.utils import (
     calculate,
-    cost_section,
-    draw_distribution,
-    img_to_bytes
+    cost_section
 )
+from utils.plotting import plot_distribution
 
 
 def maintenance(dist, inputs):
@@ -24,7 +23,7 @@ def maintenance(dist, inputs):
     st.markdown('*Assumption: Maintenance is done component by component*')
     # Draw distribution
     st.header('Distribution')
-    draw_distribution(dist)
+    plot_distribution(dist)
 
     # Input
     st.markdown('---')

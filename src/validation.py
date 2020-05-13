@@ -1,13 +1,11 @@
 import io
 import pandas as pd
 import streamlit as st
-
-from utils import (
-    get_properties,
-    img_to_bytes,
-    sequential_test,
-    test_inputs
-    )
+from utils.io import img_to_bytes
+from utils.utils import test_inputs
+from utils.plotting import (
+    plot_properties, plot_sequential_test
+)
 
 
 def validation():
@@ -73,7 +71,7 @@ def validation():
     tid = st.selectbox('Test ID', [x[0] for x in state])
     if tid:
         st.subheader('Test Properties')
-        get_properties(state, tid, noc, oh)
+        plot_properties(state, tid, noc, oh)
 
     st.subheader('Upload')
     st.markdown('''Upload test data with format as specified in the Fitter
@@ -93,4 +91,4 @@ def validation():
         correction_factor = (d+1)/(2*d)
         ub = (1-beta)/alpha*correction_factor
         lb = beta/(1-alpha)
-        sequential_test(df, (lb, ub, d, m0, oh, noc))
+        plot_sequential_test(df, (lb, ub, d, m0, oh, noc))

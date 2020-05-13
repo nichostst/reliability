@@ -1,6 +1,6 @@
 import streamlit as st
 
-from utils import (
+from utils.io import (
     img_to_bytes,
     read_markdown_file
 )

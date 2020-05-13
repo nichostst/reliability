@@ -1,14 +1,13 @@
 import base64
 import pandas as pd
 import streamlit as st
-
-from sim import Simulation
-from utils import (
-    cost_section,
-    img_to_bytes,
+from utils.io import img_to_bytes
+from utils.plotting import plot_uncertainty_chart
+from utils.sim import (
     get_durations_fleetwide,
-    uncertainty_chart
+    simulate_bycomponent
 )
+from utils.utils import cost_section
 
 
 def simulation(dist, inputs):
@@ -36,8 +35,6 @@ def simulation(dist, inputs):
     rept = st.number_input('Repeat', 100, 10000, 2500)
     # Convert trial length to hours per component
     tlen = tl*oh/noc
-    if mtype == 'Component-wise':
-        sim = Simulation(noc, dist, cutoff, tlen)
 
     btn = st.button('Simulate')
     if btn:
@@ -47,10 +44,10 @@ def simulation(dist, inputs):
         fs = []
         for i in range(rept):
             if mtype == 'Component-wise':
-                sim.simulate()
-                trials.append(sim.trials)
-                ms.append(sim.maintenances)
-                fs.append(sim.failures)
+                [trial, m, f] = simulate_bycomponent(dist, cutoff, noc, tlen)
+                trials.append(trial)
+                ms.append(m)
+                fs.append(f)
             elif mtype == 'Fleetwide':
                 f = []
                 m = []
@@ -83,16 +80,16 @@ def simulation(dist, inputs):
         st.markdown('---')
         st.header('Uncertainty')
 
-        mfig = uncertainty_chart(maintenances).properties(
+        mfig = plot_uncertainty_chart(maintenances).properties(
             title='Maintenance Count Distribution'
             )
-        ffig = uncertainty_chart(failures).properties(
+        ffig = plot_uncertainty_chart(failures).properties(
             title='Failure Count Distribution'
             )
         st.markdown(f'Over {noc} components and trial length of {tl} years:')
 
         cost = inputs['mcost']*maintenances + inputs['sfcost']*failures
-        cfig = uncertainty_chart(cost).properties(
+        cfig = plot_uncertainty_chart(cost).properties(
             title='Cost Distribution'
             )
         st.altair_chart(mfig | ffig | cfig)

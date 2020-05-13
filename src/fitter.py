@@ -3,10 +3,9 @@ import io
 import pandas as pd
 from scipy.optimize import minimize
 import streamlit as st
-
-from utils import (
+from utils.io import img_to_bytes
+from utils.utils import (
     floor_magnitude,
-    img_to_bytes,
     log_likelihood
 )
 

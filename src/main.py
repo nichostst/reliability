@@ -6,7 +6,7 @@ from fitter import fitter
 from maintenance import maintenance
 from simulation import simulation
 from validation import validation
-from utils import floor_magnitude
+from utils.utils import floor_magnitude
 
 
 st.sidebar.title('Reliability')
