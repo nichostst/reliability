@@ -22,6 +22,12 @@ def validation():
                 modification of the use case as known in reliability
                 engineering literature called Reliability Demonstration Test,
                 covered in IEC 61124 standard.''')
+    st.markdown('''The test can have a second interpretation, where we may test
+                one MTBF value against another. Please input `Specified MTBF`
+                as the larger MTBF, and the `Discrimination Ratio` as the ratio
+                of the larger MTBF to the smaller MTBF. The interpretation of
+                `alpha` and `beta` thus changes to the risk of wrongly
+                accepting the lower MTBF and the higher MTBF, respectively.''')
 
     # Sidebar section
     st.sidebar.header('Parameters')
