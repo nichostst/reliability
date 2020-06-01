@@ -107,10 +107,10 @@ def log_likelihood(df, dist, params):
 
 def numerical_mtbf(dist, cutoff):
     '''
-    Numerically compute the MTBF
+    Compute the MTBF with numerical integration
     '''
     integral = truncated_ev(dist, cutoff)
-    return integral/dist.cdf(cutoff) - cutoff*(1-1/dist.cdf(cutoff))
+    return integral - cutoff*(1-1/dist.cdf(cutoff))
 
 
 def test_inputs(state, params):
